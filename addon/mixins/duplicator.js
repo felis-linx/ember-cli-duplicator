@@ -10,7 +10,7 @@ import DS from 'ember-data';
  * @mixin duplicator
  */
 
-export default Ember.Mixin.create(generateUUID, {
+export default Ember.Mixin.create(/*generateUUID,*/ {
   
 /**
  * Create dublicate of record with nested records and circular relations
@@ -48,7 +48,7 @@ export default Ember.Mixin.create(generateUUID, {
           queue = [];
       
       var double = self.get('store').createRecord(type, {
-        id : type+'-'+self.generateUUID(8) // TODO: different UUID size for models
+//        id : type+'-'+self.generateUUID(8) // TODO: different UUID size for models
       });
       
       Ember.Logger.info('Create new',type,'#',double.get('id'));
