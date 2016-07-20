@@ -2,25 +2,49 @@
 
 This README outlines the details of collaborating on this Ember addon.
 
+Duplicator mixin — create a replica of record with nested records and circular relations
+and deep unload model with all relationships
+inspired by lazybensch's ember-cli-copyable
+
+## Usage
+
+Define your model with duplicator mixin
+
+```javascript
+import Model from 'ember-data/model';
+import Duplicator from 'ember-cli-duplicator';
+
+export default Model.extend(Duplicator, {
+  define the propertyes, hasMany and belongsTo also allowed to use
+});
+```
+
+```javascript
+double = record.duplicate(options);
+```
+or
+```javascript
+record.duplicate(options).then(function(double) {
+  your code here...
+});
+```
+
+
 ## Installation
 
-* `git clone` this repository
+* `npm install https://github.com/felis-linx/ember-cli-duplicator`
+* and then import the mixin wherever you need it:
+```
+import Duplicator from 'ember-cli-duplicator';
+```
+
+## Contributing
+
+If you want to contribute to this module.
+
+* `git clone https://github.com/felis-linx/ember-cli-duplicator`
+* `cd ember-cli-duplicator`
 * `npm install`
 * `bower install`
-
-## Running
-
-* `ember server`
-* Visit your app at http://localhost:4200.
-
-## Running Tests
-
-* `npm test` (Runs `ember try:testall` to test your addon against multiple Ember versions)
 * `ember test`
-* `ember test --server`
 
-## Building
-
-* `ember build`
-
-For more information on using ember-cli, visit [http://ember-cli.com/](http://ember-cli.com/).

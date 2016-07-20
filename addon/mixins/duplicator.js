@@ -51,7 +51,7 @@ export default Ember.Mixin.create(/*generateUUID,*/ {
 //        id : type+'-'+self.generateUUID(8) // TODO: different UUID size for models
       });
       
-      Ember.Logger.info('Create new',type,'#',double.get('id'));
+      Ember.Logger.log(`[Duplicator] create new '${type}'`,double.get('id'));
       
       source.eachAttribute(function(attribute) {
         
@@ -190,7 +190,7 @@ export default Ember.Mixin.create(/*generateUUID,*/ {
         modelName = self.constructor.modelName;
     
     upwards = upwards || [];
-    Ember.Logger.info('deepunload in '+modelName, self.id);
+    Ember.Logger.log(`[Duplicator] deepUnload '${modelName}'`, self.id);
     self.eachRelationship(function(relationName, relationship) {
       if (upwards.indexOf(relationName) === -1) {
         if (relationship.kind === "belongsTo") {
