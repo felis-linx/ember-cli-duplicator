@@ -1,6 +1,5 @@
 import Ember from 'ember';
 import DS from 'ember-data';
-//import generateUUID from 'lptrendv2/mixins/generate-uuid'; 
 
 /**
  * Duplicator mixin — create a replica of record with nested records and circular relations
@@ -10,7 +9,7 @@ import DS from 'ember-data';
  * @mixin duplicator
  */
 
-export default Ember.Mixin.create(/*generateUUID,*/ {
+export default Ember.Mixin.create({
   
 /**
  * Create dublicate of record with nested records and circular relations
@@ -47,115 +46,81 @@ export default Ember.Mixin.create(/*generateUUID,*/ {
           type = source.modelName || source.typeKey,
           queue = [];
       
-      var double = self.get('store').createRecord(type, {
-//        id : type+'-'+self.generateUUID(8) // TODO: different UUID size for models
-      });
+      var double = self.get('store').createRecord(type, {});
       
       Ember.Logger.log(`[Duplicator] create new '${type}'`,double.get('id'));
       
       source.eachAttribute(function(attribute) {
-        
-         switch(Ember.typeOf(options[attribute])) {
-             
-           case 'undefined':
-             double.set(attribute, self.get(attribute));
-             break;
-             
-           case 'null':
-             double.set(attribute, null); // NOTE: or stay it undefined ?
-             break;
-             
-           default:
-             double.set(attribute, options[attribute]);
-             break;
-         }        
+        switch(Ember.typeOf(options[attribute])) {
+
+         case 'undefined':
+           double.set(attribute, self.get(attribute));
+           break;
+
+         case 'null':
+           double.set(attribute, null); // NOTE: or stay it undefined ?
+           break;
+
+         default:
+           double.set(attribute, options[attribute]);
+           break;
+        }
       });
 
       source.eachRelationship(function(relationName, meta) {
         
-        var relation = self.get(relationName);        
+        let relation = self.get(relationName),
+            relationType = Ember.typeOf(options[relationName]);
         
-        if (!relation) { return; }
-        
-        var overwrite = false, passedOptions = {};
-        
-        switch (Ember.typeOf(options[relationName])) {
-            
-          case 'null':
+        if (relation && relationType !== 'null') {
+
+          let passedOptions = {};
+
+          if (relationType === 'instance' || relationType === 'array') {
+            double.set(relationName, options[relationName]);
             return;
-            
-          case 'instance':
-            overwrite = options[relationName];
-            break;
-            
-          case 'object':
+          } else if (relationType === 'object') {
             passedOptions = options[relationName];
-            break;
-            
-          case 'array':
-            overwrite = options[relationName];
-            break;
-            
-          default:
-            break;
-        }
-        
-        switch (relation.constructor) {
-            
-          case DS.PromiseObject:
-            queue.push(relation.then(function(_object) {             
-              if (overwrite) {                
-                double.set(relationName, overwrite);                
-              } else {                
+          }
+          
+          switch (relation.constructor) {
+
+            case DS.PromiseObject:
+              queue.push(relation.then(function(_object) {
                 return _object.duplicate(passedOptions).then(function(_double) {
                    double.set(relationName, _double);
                 });
-              }
-            }));
-            break;
-            
-          case DS.PromiseManyArray:           
-            if (overwrite) {              
-              double.get(relationName).then(function(_double) {
-                _double.setObjects(overwrite);
-              });                            
-            } else {              
-              queue.push(relation.then(function(_objects) {                
-                var _queue = _objects.map(function(_object) {
-                  var _passedOptions = {};
-                  _object.eachRelationship(function(_relationName, _meta) {
-                    if (_meta.kind === 'belongsTo') {
-                      if (_object.get(_relationName).content === self) {
-                        _passedOptions[_relationName] = double;
-                      }
-                    }
-                  });
-                  return _object.duplicate(_passedOptions);                  
-                });                
-                return Ember.RSVP.all(_queue).then(function(_doubles) {
-                  double.get(relationName).then(function(_object) {
-                    _object.setObjects(_doubles);
-                  });
-                });                
               }));              
-            }
-            break;
-            
-          default:           
-            if (meta.kind === 'belongsTo') {              
-              if (overwrite) {            
-                double.set(relationName, overwrite);                
-              } else {                
+              break;
+
+            case DS.PromiseManyArray:           
+              queue.push(relation.then(function(objects) {
+                let _queue = objects.map(function(object) {
+                      var _passedOptions = {};
+                      object.eachRelationship(function(_relationName, _meta) {
+                        if (_meta.kind === 'belongsTo') {
+                          if (object.get(_relationName).content === self) {
+                            _passedOptions[_relationName] = double;
+                          }
+                        }
+                      });
+                      return object.duplicate(_passedOptions);
+                    });
+
+                return Ember.RSVP.all(_queue).then(function(doubles) {
+                  double.get(relationName).then(function(object) {
+                    object.setObjects(doubles);
+                  });
+                });
+              }));
+              break;
+
+            default:
+              if (meta.kind === 'belongsTo') {              
                 queue.push(relation.duplicate(passedOptions).then(function(_double) {
                   double.set(relationName, _double);
-                }));                
-              }                            
-            } else {               
-              if (overwrite) {                
-                double.get(relationName).then(function(_double) {
-                  _double.setObjects(overwrite);
-                });                
-              } else {                
+                }));                                                            
+              } else {               
                 var objects = relation.map(function(object) {
                   return object.duplicate(passedOptions);
                 });                
@@ -163,12 +128,11 @@ export default Ember.Mixin.create(/*generateUUID,*/ {
                   double.get(relationName).then(function(_double) {
                     _double.setObjects(_objects);
                   });
-                }));
+                }));                
               }
-            }
-            break;
+              break;
+          }
         }
-        
       });
       
       Ember.RSVP.all(queue).then(function() {

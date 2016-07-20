@@ -34,6 +34,7 @@
   "forin": false,
   "immed": false,
   "laxbreak": false,
+  "maxcomplexity": 8,
   "newcap": true,
   "noarg": true,
   "noempty": false,
