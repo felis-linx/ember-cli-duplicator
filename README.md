@@ -5,7 +5,8 @@ This README outlines the details of collaborating on this Ember addon.
 
 Duplicator mixin — create a replica of record with nested records and circular relations
 and deep unload model with all relationships
-inspired by lazybensch's ember-cli-copyable
+
+Inspired by lazybensch's ember-cli-copyable
 
 ## Usage
 
