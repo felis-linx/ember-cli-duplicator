@@ -158,7 +158,7 @@ export default Ember.Mixin.create({
     self.eachRelationship(function(relationName, relationship) {
       if (upwards.indexOf(relationName) === -1) {
         if (relationship.kind === "belongsTo") {
-          self.get(relationName).deepUnload(upwards); //[modelName] TODO: compute what attribute is belongsTo self
+          self.get(relationName).deepUnload(upwards);
         }
         if (relationship.kind === "hasMany") {
           var relations = self.get(relationName).map(function(relation) {
